@@ -47,10 +47,6 @@ def main():
         service = build('sheets', "v4", credentials=credentials)
         sheets = service.spreadsheets()
 
-        result = sheets.values().get(spreadsheetId=SPREADSHEET_ID, range="Data!A1:C3").execute()
-
-        values = result.get('values', [])
-
         n = 2
         for i in names:
             sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{n}", valueInputOption='USER_ENTERED',
@@ -65,8 +61,4 @@ def main():
 
 
 main()
-
-tp_info_list = []
-
-print(get_info("Dreams & Nightmares Case"))
 
