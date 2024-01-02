@@ -17,11 +17,19 @@ with open('names.csv', newline='') as f:
     reader = csv.reader(f)
     names = list(reader)
 names.pop(0)
-n=0
-for i in names:
-    names[n] = i[0]
-    n += 1
-print(names)
+
+
+def get_info(name):
+    url = 'https://steamcommunity.com/market/priceoverview/?appid=730&currency=5&market_hash_name='
+    hash_name = quote(name)
+    url = url + hash_name
+    html = requests.get(url)
+
+    if html.json():
+        if list(html.json().values())[0] != "false":
+            return list(html.json().values())[1:]
+
+
 def main():
     credentials = None
     if os.path.exists("token.json"):
@@ -43,14 +51,15 @@ def main():
 
         values = result.get('values', [])
 
-        sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A1:A20", valueInputOption='USER_ENTERED',
-                                body={"values": [names]}).execute()
+        n = 2
+        for i in names:
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{n}", valueInputOption='USER_ENTERED',
+                                   body={"values": [[i[0]]]}).execute()
 
-        sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B2:E2", valueInputOption='USER_ENTERED',
-                               body={"values": [['done', 'done', 'done', 'done']]}).execute()
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{n}:E{n}", valueInputOption='USER_ENTERED',
+                                   body={"values": [get_info(i[0])]}).execute()
+            n += 1
 
-        for row in values:
-            print(values)
     except HttpError as error:
         print(error)
 
@@ -59,27 +68,5 @@ main()
 
 tp_info_list = []
 
+print(get_info("Dreams & Nightmares Case"))
 
-def get_info():
-    url = 'https://steamcommunity.com/market/priceoverview/?appid=730&currency=5&market_hash_name='
-
-    with open('names.csv', newline='') as f:
-        reader = csv.reader(f)
-        names = list(reader)
-    names.pop(0)
-
-    for i in names:
-        time.sleep(0.2)
-        url = 'https://steamcommunity.com/market/priceoverview/?appid=730&currency=5&market_hash_name='
-        hash_name = quote(str(i[0]))
-        url = url + hash_name
-        html = requests.get(url)
-
-        if html.json():
-            if list(html.json().values())[0] != "false":
-                tp_info_list.append(list(html.json().values())[1:])
-                print(list(html.json().values())[1:])
-
-
-# get_info()
-# print(tp_info_list)
