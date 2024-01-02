@@ -13,10 +13,9 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = '1KhgnBVi5b9CFFYOUbvhBGPNw_tCXd_68rXNJ4iMFlBQ'
 
-with open('names.csv', newline='') as f:
-    reader = csv.reader(f)
-    names = list(reader)
-names.pop(0)
+
+names = pd.read_csv("names.csv")
+names = names.values.tolist()
 
 
 def get_info(name):
@@ -27,6 +26,7 @@ def get_info(name):
 
     if html.json():
         if list(html.json().values())[0] != "false":
+            print(url)
             return list(html.json().values())[1:]
 
 
@@ -61,4 +61,4 @@ def main():
 
 
 main()
-
+# print(get_info("★ Driver Gloves | Overtake (Field-Tested)"))
