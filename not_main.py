@@ -49,7 +49,11 @@ def get_steam_info(name, num):
 # print(names)
 
 
-def main():
+def main(fr, to):
+    if not fr:
+        fr = 0
+    if not to:
+        to = len(names)-1
     credentials = None
     if os.path.exists("token.json"):
         credentials = Credentials.from_authorized_user_file("token.json", SCOPES)
@@ -66,7 +70,7 @@ def main():
         service = build('sheets', "v4", credentials=credentials)
         sheets = service.spreadsheets()
 
-        for i in names[59:]:
+        for i in names[fr:to]:
             time.sleep(2)
             sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{i[0]+2}", valueInputOption='USER_ENTERED',
                                    body={"values": [[i[1]]]}).execute()
@@ -79,6 +83,6 @@ def main():
         print(error)
 
 
-main()
+main(0, 0)
 
 print(not_readed_names)
