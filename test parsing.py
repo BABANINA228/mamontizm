@@ -23,5 +23,5 @@ for i in range(10):
     count += 50
 
 df = pd.DataFrame(all_name)
-df.to_csv("names.csv", index=False)
+df.to_csv("names.csv")
 

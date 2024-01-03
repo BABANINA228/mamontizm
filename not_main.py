@@ -29,15 +29,24 @@ def get_steam_info(name, num):
             return list(html.json().values())[1:]
         else:
             print('request false')
-            while list(html.json().values())[0] != "false":
+            while list(html.json().values())[0] == "false":
                 html = requests.get(url)
     else:
         print('request error')
-        while not html.json():
-            print("trying to request", url)
-            html = requests.get(url)
-            time.sleep(30)
-        return list(html.json().values())[1:]
+        not_readed_names.append([name, num])
+
+
+
+# def create_steam_list():
+#     for i in range(200):
+#         info = get_steam_info(names[i][0])
+#         for j in range(len(info)):
+#             info[j] = info[j].replace(" pуб.", '')
+#         names[i] += info
+#     time.sleep(1)
+
+# create_steam_list()
+# print(names)
 
 
 def main():
@@ -57,14 +66,14 @@ def main():
         service = build('sheets', "v4", credentials=credentials)
         sheets = service.spreadsheets()
 
-        n = 2
-        for i in names:
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{n}", valueInputOption='USER_ENTERED',
+        for i in names[59:]:
+            time.sleep(2)
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{i[0]+2}", valueInputOption='USER_ENTERED',
                                    body={"values": [[i[1]]]}).execute()
 
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{n}:E{n}", valueInputOption='USER_ENTERED',
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{i[0]+2}:E{i[0]+2}", valueInputOption='USER_ENTERED',
                                    body={"values": [get_steam_info(i[1], i[0])]}).execute()
-            n += 1
+
 
     except HttpError as error:
         print(error)
@@ -72,3 +81,4 @@ def main():
 
 main()
 
+print(not_readed_names)
