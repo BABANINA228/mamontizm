@@ -1,6 +1,4 @@
 import pandas as pd
-import csv
-from urllib.parse import quote
 import time
 from csgo_market_api import CSGOMarket
 
@@ -11,10 +9,10 @@ names = names.values.tolist()
 
 market = CSGOMarket(api_key='42N05ro4gln24tP198b6A5F2Uu5h3ha')
 
-for i in range(len(names)):
-    list_hash_name = [names[i][0]]
+for i in range(10):
+    list_hash_name = [names[i][1]]
     item_info = market.get_list_items_info(list_hash_name=list_hash_name)
-    print(names[i][0], item_info['data'][names[i][0]]['average'])
+    print(names[i][1], item_info['data'][names[i][1]]['average'])
     time.sleep(0.21)
 
         

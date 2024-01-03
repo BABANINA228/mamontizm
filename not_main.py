@@ -9,6 +9,22 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import pandas as pd
+import time
+from csgo_market_api import CSGOMarket
+
+# # Больше 5 запросов в секунду не отправлять! Иначе ключ удалится
+#
+# names = pd.read_csv("names.csv")
+# names = names.values.tolist()
+#
+# market = CSGOMarket(api_key='42N05ro4gln24tP198b6A5F2Uu5h3ha')
+#
+# for i in range(len(names)):
+#     list_hash_name = [names[i][0]]
+#     item_info = market.get_list_items_info(list_hash_name=list_hash_name)
+#     print(names[i][0], item_info['data'][names[i][0]]['average'])
+#     time.sleep(0.21)
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = '1KhgnBVi5b9CFFYOUbvhBGPNw_tCXd_68rXNJ4iMFlBQ'
@@ -34,19 +50,6 @@ def get_steam_info(name, num):
     else:
         print('request error')
         not_readed_names.append([name, num])
-
-
-
-# def create_steam_list():
-#     for i in range(200):
-#         info = get_steam_info(names[i][0])
-#         for j in range(len(info)):
-#             info[j] = info[j].replace(" pуб.", '')
-#         names[i] += info
-#     time.sleep(1)
-
-# create_steam_list()
-# print(names)
 
 
 def main(fr, to):
@@ -76,7 +79,7 @@ def main(fr, to):
                                    body={"values": [[i[1]]]}).execute()
 
             sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{i[0]+2}:E{i[0]+2}", valueInputOption='USER_ENTERED',
-                                   body={"values": [get_steam_info(i[1], i[0])]}).execute()
+                                   body={"values": []}).execute()
 
 
     except HttpError as error:

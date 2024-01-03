@@ -9,14 +9,31 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import pandas as pd
+import time
+from csgo_market_api import CSGOMarket
+
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = '1KhgnBVi5b9CFFYOUbvhBGPNw_tCXd_68rXNJ4iMFlBQ'
 
-
 names = pd.read_csv("names.csv")
 names = names.values.tolist()
 not_readed_names = []
+
+
+def get_market_info(name, num):
+    # Больше 5 запросов в секунду не отправлять! Иначе ключ удалится
+    names = pd.read_csv("names.csv")
+    names = names.values.tolist()
+
+    market = CSGOMarket(api_key='42N05ro4gln24tP198b6A5F2Uu5h3ha')
+
+    list_hash_name = [name]
+    item_info = market.get_list_items_info(list_hash_name=list_hash_name)
+    time.sleep(0.21)
+    return item_info['data'][name]['average']
+
 
 def get_steam_info(name, num):
     url = 'https://steamcommunity.com/market/priceoverview/?appid=730&currency=5&market_hash_name='
@@ -29,18 +46,18 @@ def get_steam_info(name, num):
             return list(html.json().values())[1:]
         else:
             print('request false')
-            while list(html.json().values())[0] != "false":
+            while list(html.json().values())[0] == "false":
                 html = requests.get(url)
     else:
         print('request error')
-        while not html.json():
-            print("trying to request", url)
-            html = requests.get(url)
-            time.sleep(30)
-        return list(html.json().values())[1:]
+        not_readed_names.append([name, num])
 
 
-def main():
+def main(fr, to, steam, market, name):
+    if not fr:
+        fr = 0
+    if not to:
+        to = len(names)-1
     credentials = None
     if os.path.exists("token.json"):
         credentials = Credentials.from_authorized_user_file("token.json", SCOPES)
@@ -57,18 +74,27 @@ def main():
         service = build('sheets', "v4", credentials=credentials)
         sheets = service.spreadsheets()
 
-        n = 2
-        for i in names:
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{n}", valueInputOption='USER_ENTERED',
-                                   body={"values": [[i[1]]]}).execute()
+        for i in names[fr:to]:
+            time.sleep(1.5)
+            if name:
+                sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!A{i[0]+2}", valueInputOption='USER_ENTERED',
+                                       body={"values": [[i[1]]]}).execute()
+            if steam:
+                if name:
+                    time.sleep(0.5)
+                else:
+                    time.sleep(2)
+                sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{i[0]+2}:D{i[0]+2}", valueInputOption='USER_ENTERED',
+                                       body={"values": [get_steam_info(i[1], i[0])]}).execute()
 
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!B{n}:E{n}", valueInputOption='USER_ENTERED',
-                                   body={"values": [get_steam_info(i[1], i[0])]}).execute()
-            n += 1
+            if market:
+                sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Data!E{i[0]+2}",
+                                       valueInputOption='USER_ENTERED',
+                                       body={"values": [[get_market_info(i[1], i[0])]]}).execute()
+
 
     except HttpError as error:
         print(error)
 
 
-main()
-
+main(0, 0, steam=False, market=True, name=False)
